@@ -1,12 +1,41 @@
-$LOAD_PATH.unshift(File.join(File.dirname(__FILE__), '..', 'lib'))
-$LOAD_PATH.unshift(File.dirname(__FILE__))
-require 'rspec'
-require 'radical'
+require 'stringio'
+require 'test/unit'
+require File.dirname(__FILE__) + '/../lib/radical_daemon'
 
-# Requires supporting files with custom matchers and macros, etc,
-# in ./support/ and its subdirectories.
-Dir["#{File.dirname(__FILE__)}/support/**/*.rb"].each {|f| require f}
+require 'rubygems'
+require 'mocha'
+require 'ruby-debug' rescue nil
 
-RSpec.configure do |config|
-  
+ActionMailer::Base.delivery_method = :test
+$test_mode = true
+
+class SSHObject < OpenStruct
+  attr_accessor :options
+
+  def initialize(options = {})
+  end
+
+  def on_data
+    yield SSHObject.new, ""
+  end
+
+  def on_extended_data
+    yield SSHObject.new, "", ""
+  end
+
+  def read_long
+    ""
+  end
+
+  def upload!(from, to)
+    nil
+  end
+
+  def scp
+    SSHObject.new
+  end
+
+  def on_request(item)
+    yield SSHObject.new, SSHObject.new
+  end
 end
