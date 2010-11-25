@@ -96,4 +96,12 @@ describe "The Radical Daemon" do
     ActionMailer::Base.deliveries.size.should == 2
     ActionMailer::Base.deliveries.last.subject.should == "[Radical] task is now OK"
   end
+
+  it "should send an unknown message if the error code was not 0, 1, or 2" do
+    daemon = Radical::Daemon.new(:recipe_file => File.expand_path(File.dirname(__FILE__)) + "/../test/simple_test.rb")
+    daemon.task_manager.stubs(:run!).returns([{:exit_code => 100, :stdout => "yup"}])
+    daemon.run!
+    ActionMailer::Base.deliveries.size.should == 1
+    ActionMailer::Base.deliveries.first.subject.should == "[Radical] task is now UNKNOWN"
+  end
 end
