@@ -8,6 +8,7 @@ gem 'delayed_job'
 gem 'screwcap', '0.6'
 gem 'activerecord'
 gem 'actionmailer'
+gem 'twilio'
 
 group :development do
   gem "rspec", "~> 2.1.0"

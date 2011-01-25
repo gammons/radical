@@ -5,8 +5,8 @@ require 'radical'
 require 'screwcap'
 require 'clockwork'
 require 'radical/db'
-require 'radical_daemon/screwcap_exts'
-require 'radical_daemon/mail'
+require 'daemon/screwcap_exts'
+require 'daemon/mail'
 
 Thread.abort_on_exception = true
 
@@ -45,15 +45,15 @@ module Radical
     def handle_job(job)
       out = @task_manager.run!(job).first
       if model = Job.find_by_name(job)
-        if model.passed != out[:exit_code] and out[:exit_code] == 0 and @task_manager.mail_to
-          RadicalMail.ok_message(@task_manager.mail_from, @task_manager.mail_to, job).deliver
-        end
         model.update_attributes(:passed => out[:exit_code] == 0,
                                 :stderr_output => out[:stderr],
                                 :stdout_output => out[:stdout],
                                 :last_checked_at => Time.now.utc)
+        if model.passed != out[:exit_code] and out[:exit_code] == 0 and @task_manager.mail_to
+          RadicalMail.ok_message(@task_manager.mail_from, @task_manager.mail_to, model).deliver
+        end
       else
-        Job.create(:passed => out[:exit_code] == 0,
+        model = Job.create(:passed => out[:exit_code] == 0,
                       :name => job,
                       :stderr_output => out[:stderr],
                       :stdout_output => out[:stdout],
@@ -63,11 +63,11 @@ module Radical
       if out[:exit_code] != 0 and @task_manager.mail_to
         case out[:exit_code] 
         when 1
-          RadicalMail.warning_message(@task_manager.mail_from, @task_manager.mail_to, job).deliver
+          RadicalMail.warning_message(@task_manager.mail_from, @task_manager.mail_to, model).deliver
         when 2
-          RadicalMail.critical_message(@task_manager.mail_from, @task_manager.mail_to, job).deliver
+          RadicalMail.critical_message(@task_manager.mail_from, @task_manager.mail_to, model).deliver
         else
-          RadicalMail.unknown_message(@task_manager.mail_from, @task_manager.mail_to, job).deliver
+          RadicalMail.unknown_message(@task_manager.mail_from, @task_manager.mail_to, model).deliver
         end
       end
     end
@@ -76,11 +76,12 @@ module Radical
       log "Starting clock for #{@@events.size} events: [ " + @@events.map { |e| e.to_s }.join(' ') + " ]"
       loop do
         tick
-        break if $test_mode == true
         sleep 1
       end
       @threads.join
     end
 
+    def log(msg)
+    end
   end
 end
