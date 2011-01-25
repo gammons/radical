@@ -6,7 +6,7 @@ gem 'sqlite3-ruby'
 gem 'clockwork'
 gem 'delayed_job'
 gem 'screwcap', '0.6'
-gem 'activerecord'
+gem 'activerecord', '3.0.3'
 gem 'actionmailer'
 gem 'twilio'
 
