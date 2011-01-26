@@ -11,29 +11,6 @@ describe "The Radical Daemon" do
   end
 
   describe "The Recipe file" do
-    #it "should be able to load" do
-    #  daemon = Radical::Daemon.new(:recipe_file => File.expand_path(File.dirname(__FILE__)) + "/../test/test_radical.rb")
-    #  daemon.task_manager.should_not be_nil
-    #end
-
-    #it "should respond to checks_for" do
-    #  tm = TaskManager.new
-    #  tm.server :server, :address => "abc.com", :user => "root", :keys => "mykey"
-    #  tm.checks_for :server, :every => 5.minutes do
-    #    run "test", :desc => "Test this", :every => 3.minutes
-    #  end
-
-    #  task = tm.__tasks.first
-    #  task.__options[:every].should == 300
-    #  task.__build_commands
-    #  command = task.__commands.first
-    #  command[:type].should == :remote
-    #  command[:from].should == "task"
-    #  command[:desc].should == "Test this"
-    #  command[:command].should == "test"
-    #  command[:every].should == 3.minutes
-    #end
-
     it "should respond to twilio" do
       tm = TaskManager.new
       tm.twilio "abcd","1234"
@@ -80,6 +57,24 @@ describe "The Radical Daemon" do
         tm.server :server, :address => "abc.com", :user => "root", :keys => "~/.ssh/my_key"
         tm.check :check, "test"
         lambda { tm.monitor(:server) { run :check } }.should_not raise_error(ArgumentError)
+      end
+
+      describe "run commands" do
+        it "should override :every if it was passed in" do
+          tm = TaskManager.new
+          tm.server :server, :address => "abc.com", :user => "root", :keys => "~/.ssh/my_key"
+          tm.sysop :bob, :email => "bob@example.com"
+          tm.sysop :jim, :email => "jim@example.com"
+          tm.check :cmd1, "cmd1"
+          tm.check :cmd2, "cmd1"
+          tm.monitor :server, :alert => :bob, :with => :email, :every => 5.minutes do
+            run :cmd1, :every => 2.minutes, :alert => :jim, :with => :sms
+            run :cmd2
+          end
+          mon = tm.__monitors.first
+          mon.__commands.first.should == {:with => [:sms], :every => 2.minutes, :command => :cmd1, :alert => [:jim]}
+          mon.__commands.last.should == {:with => [:email], :every => 5.minutes, :command => :cmd2, :alert => [:bob]}
+        end
       end
     end
   end

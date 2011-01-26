@@ -1,18 +1,29 @@
+class Object
+  def to_arr
+    return nil if self.nil?
+    (self.class == Array) ? self : [self]
+  end
+end
+
 class ServerMonitor < Screwcap::Base
   def initialize(options = {}, &block)
     super
     self.__name = options.delete(:name)
     self.__options = options
-    self.__options[:servers] = [self.__options[:servers]] unless self.__options[:servers].class == Array
-
-    self.__options[:alert] = [self.__options[:alert]] if self.__options[:alert] and self.__options[:alert].class != Array
+    self.__options[:servers] = self.__options[:servers].to_arr
+    self.__options[:alert] = self.__options[:alert].to_arr
+    self.__options[:with] = self.__options[:with].to_arr
     self.__commands = []
     self.instance_eval(&block) if block_given?
     validate
   end
 
   def run(cmd, options = {})
-    self.__commands << options.merge(:command => cmd)
+    options[:with] = options[:with].to_arr if options[:with]
+    options[:alert] = options[:alert].to_arr if options[:alert]
+    self.__commands << {:every => self.__options[:every], 
+      :with => self.__options[:with],
+      :alert => self.__options[:alert]}.merge(options.merge(:command => cmd))
   end
 
   private 

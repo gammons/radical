@@ -25,8 +25,8 @@ group :admins, [:bob, :jim]
 # Checks
 ##################
 
-monitor :qm, :alert => [:admins], :every => 5.minutes do
-  run :haproxy_check, :every => 2.minutes, :alert => [:admins], :with => [:email, :sms]
+monitor :qm, :every => 5.minutes, :alert => [:admins], :with => [:email, :sms] do
+  run :haproxy_check, :every => 2.minutes, :alert => [:admins], :with => [:email]
   run :apache_check
 end
 
