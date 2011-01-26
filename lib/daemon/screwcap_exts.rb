@@ -3,27 +3,47 @@ class ServerMonitor < Screwcap::Base
     super
     self.__name = options.delete(:name)
     self.__options = options
+    self.__options[:servers] = [self.__options[:servers]] unless self.__options[:servers].class == Array
+
+    self.__options[:alert] = [self.__options[:alert]] if self.__options[:alert] and self.__options[:alert].class != Array
     self.__commands = []
-    self.__servers = []
+    validate
     yield if block_given?
   end
 
   def run(cmd, options = {})
     self.__commands << options.merge(:command => cmd)
   end
+
+  private 
+
+  def validate
+    self.__options[:servers].each do |server|
+      unless self.__options[:all_servers].map(&:name).include?(server)
+        raise ArgumentError, "Cannot find server named :#{server} to monitor."
+      end
+    end
+    if self.__options[:alert]
+      consider = self.__options[:sysops].map {|s| s[:name] }
+      consider += self.__options[:groups].map {|g| g[:name] } if self.__options[:groups]
+      consider.flatten!
+      self.__options[:alert].each do |alert|
+        unless consider.include?(alert)
+          raise ArgumentError, "Cannot find sysop or group named :#{alert} to alert."
+        end
+      end
+    end
+  end
 end
 
 class TaskManager
   def monitor(servers, options = {}, &block)
     self.__monitors ||= []
-    self.__monitors << ServerMonitor.new(options.merge(:servers => servers))
-  end
-
-  def checks_for(server, options = {}, &block)
-    t = Task.new(options.merge({:name => "task", :server => server}), &block)
-    t.clone_from(self)
-    t.validate(self.__servers) unless options[:local] == true
-    self.__tasks << t
+    self.__monitors << ServerMonitor.new(options.merge(:all_servers => self.__servers, 
+                                                       :servers => servers,
+                                                       :sysops => self.__sysops,
+                                                       :groups => self.__groups
+                                                      ))
   end
 
   def twilio(sid, token)

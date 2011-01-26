@@ -3,8 +3,9 @@ $:.include?(File.dirname(__FILE__)) || $:.include?(File.expand_path(File.dirname
 
 require 'radical'
 require 'screwcap'
-require 'clockwork'
 require 'radical/db'
+require 'eventmachine'
+
 require 'daemon/screwcap_exts'
 require 'daemon/mail'
 
@@ -12,7 +13,6 @@ Thread.abort_on_exception = true
 
 module Radical
   class Daemon 
-    include Clockwork
   
     attr_accessor :task_manager, :threads
 
@@ -25,21 +25,26 @@ module Radical
     end
 
     def run!(options = {})
-      handler do |job|
-        if $test_mode
-          handle_job(job)
-        else
-          @threads << Thread.new(job) { |_job| handle_job(_job) }
-        end
-      end
+      #EventMachine.run do
+      #  @task_manager.__tasks.each do |t|
+      #  end
+      #end
+
+      #handler do |job|
+      #  if $test_mode
+      #    handle_job(job)
+      #  else
+      #    @threads << Thread.new(job) { |_job| handle_job(_job) }
+      #  end
+      #end
   
-      @task_manager.__tasks.each do |t|
-        t.__build_commands(@task_manager.__command_sets)
-        every(t.__options[:every], t.__name)
-      end
+      #@task_manager.__tasks.each do |t|
+      #  t.__build_commands(@task_manager.__command_sets)
+      #  every(t.__options[:every], t.__name)
+      #end
   
-      trap("INT") { $stdout << " Exiting...\n"; Kernel.exit(0) }
-      do_run
+      #trap("INT") { $stdout << " Exiting...\n"; Kernel.exit(0) }
+      #do_run
     end
 
     def handle_job(job)
