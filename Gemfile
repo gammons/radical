@@ -3,7 +3,7 @@ source "http://rubygems.org"
 gem 'sinatra'
 gem 'haml'
 gem 'sqlite3-ruby'
-gem 'clockwork'
+gem 'eventmachine'
 gem 'delayed_job'
 gem 'screwcap', '0.6'
 gem 'activerecord', '3.0.3'
