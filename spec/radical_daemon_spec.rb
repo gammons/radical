@@ -70,6 +70,17 @@ describe "The Radical Daemon" do
         tm.group :bobs, [:bob, :bob2]
         lambda { tm.monitor :server, :alert => [:bobs] }.should_not raise_error(ArgumentError)
       end
+
+      it "should complain if it cant find the thing to check" do
+        tm = TaskManager.new
+        tm.server :server, :address => "abc.com", :user => "root", :keys => "~/.ssh/my_key"
+        lambda { tm.monitor(:server) { run :unknown_check } }.should raise_error(ArgumentError)
+
+        tm = TaskManager.new
+        tm.server :server, :address => "abc.com", :user => "root", :keys => "~/.ssh/my_key"
+        tm.check :check, "test"
+        lambda { tm.monitor(:server) { run :check } }.should_not raise_error(ArgumentError)
+      end
     end
   end
 

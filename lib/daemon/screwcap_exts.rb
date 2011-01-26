@@ -7,8 +7,8 @@ class ServerMonitor < Screwcap::Base
 
     self.__options[:alert] = [self.__options[:alert]] if self.__options[:alert] and self.__options[:alert].class != Array
     self.__commands = []
+    self.instance_eval(&block) if block_given?
     validate
-    yield if block_given?
   end
 
   def run(cmd, options = {})
@@ -33,6 +33,12 @@ class ServerMonitor < Screwcap::Base
         end
       end
     end
+
+    self.__commands.map {|c| c[:command] }.each do |command|
+      unless (self.__options[:checks] || [{}]).map {|c| c[:name] }.include?(command)
+        raise ArgumentError, "Cannot find check named :#{command}."
+      end
+    end
   end
 end
 
@@ -42,8 +48,9 @@ class TaskManager
     self.__monitors << ServerMonitor.new(options.merge(:all_servers => self.__servers, 
                                                        :servers => servers,
                                                        :sysops => self.__sysops,
-                                                       :groups => self.__groups
-                                                      ))
+                                                       :groups => self.__groups,
+                                                       :checks => self.__checks
+                                                      ), &block)
   end
 
   def twilio(sid, token)
