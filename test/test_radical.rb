@@ -5,7 +5,7 @@
 set :scripts_dir, "/usr/local/nagios/libexec/"
 set :mail_to, "gammons@gmail.com"
 set :mail_from, "radical@radical.com"
-twilio "sid","token"
+notifier :twilio, :sid => "sid", :token => "token"
 
 ##################
 # Servers

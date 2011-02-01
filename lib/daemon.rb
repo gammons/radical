@@ -8,6 +8,7 @@ require 'eventmachine'
 
 require 'daemon/screwcap_exts'
 require 'daemon/mail'
+require 'daemon/notifier'
 
 Thread.abort_on_exception = true
 

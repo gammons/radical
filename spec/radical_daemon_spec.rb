@@ -11,13 +11,6 @@ describe "The Radical Daemon" do
   end
 
   describe "The Recipe file" do
-    it "should respond to twilio" do
-      tm = TaskManager.new
-      tm.twilio "abcd","1234"
-      tm.__twilio_sid.should == "abcd"
-      tm.__twilio_token.should == "1234"
-    end
-
     describe "monitor" do
       it "should complain if it cant find the server" do
         tm = TaskManager.new
@@ -75,6 +68,19 @@ describe "The Radical Daemon" do
           mon.__commands.first.should == {:with => [:sms], :every => 2.minutes, :command => :cmd1, :alert => [:jim]}
           mon.__commands.last.should == {:with => [:email], :every => 5.minutes, :command => :cmd2, :alert => [:bob]}
         end
+      end
+    end
+
+    describe "notifiers" do
+      it "should respond to notifier" do
+        tm = TaskManager.new
+        tm.notifier :twilio, :sid => "sid", :token => "token"
+        tm.should have(1).__notifiers
+        tm.__notifiers.first.class.should == Radical::Notifiers::Twilio
+        tm.__notifiers.first.opts.should == {:token => "token", :sid => "sid"}
+      end
+
+      it "should complain if it does not know the sms provider" do
       end
     end
   end

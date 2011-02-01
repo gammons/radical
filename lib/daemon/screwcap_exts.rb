@@ -64,9 +64,9 @@ class TaskManager
                                                       ), &block)
   end
 
-  def twilio(sid, token)
-    self.__twilio_sid = sid
-    self.__twilio_token =  token
+  def notifier(type, options)
+    self.__notifiers ||= []
+    self.__notifiers << Radical::Notifier.create(type, options)
   end
 
   def sysop(name, hsh)
